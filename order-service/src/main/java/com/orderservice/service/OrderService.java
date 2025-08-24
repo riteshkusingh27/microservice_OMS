@@ -1,20 +1,26 @@
-   package com.orderservice.service;
+package com.orderservice.service;
 
 import com.orderservice.dto.OrderLineItemsDto;
 import com.orderservice.dto.OrderRequest;
+import com.orderservice.dto.inventoryresponse;
 import com.orderservice.entity.Order;
 import com.orderservice.entity.OrderLineItems;
 import com.orderservice.repository.OrderRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepo orderRepo;
+    private final WebClient webClient;
 
     public void placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
@@ -26,10 +32,27 @@ public class OrderService {
                 .toList();
 
         order.setOrderLineItemsList(orderLineItems);
-        orderRepo.save(order);
+        List<String> skucode = order.getOrderLineItemsList().stream().map(OrderLineItems::getSkuCode).toList();
+        // call inventory service and place order if product is in stock !!! using webclient {webflux}
+        // customer order many orders with different sku code , collect sku code as list
+
+        log.info("skucode: {}", skucode);
+        System.out.println("skucode: " + skucode);
+        inventoryresponse[] inventoryresponsearray = webClient.get().uri("http://localhost:8082/api/inventory", uriBuilder -> uriBuilder.queryParam("skucode", skucode.toArray(new String[0])).build())
+
+                .retrieve()
+                .bodyToMono(inventoryresponse[].class)
+                .block();
+        boolean allProductinStock = Arrays.stream(inventoryresponsearray).allMatch(inventoryresponse::isInStock);
+        if (allProductinStock) {
+            orderRepo.save(order);
+        } else {
+            throw new IllegalArgumentException("Product is not in stock");
+        }
+
     }
 
-    private OrderLineItems maptoDto(OrderLineItemsDto order , Order ords) {
+    private OrderLineItems maptoDto(OrderLineItemsDto order, Order ords) {
 
         OrderLineItems orderLineItems = new OrderLineItems();
         orderLineItems.setSkuCode(order.getSkuCode());

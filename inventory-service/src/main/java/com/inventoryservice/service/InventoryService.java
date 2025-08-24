@@ -1,9 +1,12 @@
 package com.inventoryservice.service;
 
+import com.inventoryservice.dto.inventoryresponse;
 import com.inventoryservice.reopositiry.InventiortRepo;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class InventoryService {
@@ -14,8 +17,20 @@ public class InventoryService {
         this.inventiortRepo = inventiortRepo;
     }
      @Transactional(readOnly = true)
-    public boolean isInstock(String skucode){
+    public List<inventoryresponse> isInstock(List<String> skucode){
         // extension method for querying from inventory repo
-         return   inventiortRepo.findBySkuCode(skucode).isPresent();
+
+
+         // find all the inventory with the skew code in the list
+    // return stock information for each sku code
+         return   inventiortRepo.findBySkuCodeIn(skucode).stream()
+                 .map(inventory ->
+                     inventoryresponse.builder()
+                             .skuCode(inventory.getSkuCode())
+                             .isInStock(inventory.getQuantity() >0)
+                             .build()
+                 )
+                 .toList();
+         // unmodified list
        }
 }
