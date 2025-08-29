@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/order")
-@ResponseStatus(HttpStatus.CREATED)
+
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderService orderService;
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public String placeOrder(@RequestBody OrderRequest order){
   System.out.println(order);
             orderService.placeOrder(order);
