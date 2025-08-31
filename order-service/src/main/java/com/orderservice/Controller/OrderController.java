@@ -2,10 +2,15 @@ package com.orderservice.Controller;
 
 import com.orderservice.dto.OrderRequest;
 import com.orderservice.service.OrderService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/order")
@@ -16,9 +21,20 @@ public class OrderController {
     private final OrderService orderService;
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public String placeOrder(@RequestBody OrderRequest order){
+    @CircuitBreaker(name="product",fallbackMethod = "fallbackPlaceOrder")
+    @TimeLimiter(name="product")
+    @Retry(name="product")
+    public CompletableFuture<String> placeOrder(@RequestBody OrderRequest order){
   System.out.println(order);
-            orderService.placeOrder(order);
-        return "Order placed succesfully";
+       return   CompletableFuture.supplyAsync(()-> orderService.placeOrder(order));
+
     }
+
+    // fallback
+    // if the srvice is down the when the ewquest fails the fallback method is executed
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    public CompletableFuture<String> fallbackPlaceOrder (OrderRequest order, RuntimeException runtimeException){
+        return CompletableFuture.supplyAsync(()->"Oops! Something went wrong, please order after some time");
+    }
+
 }

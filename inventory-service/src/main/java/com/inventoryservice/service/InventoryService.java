@@ -2,6 +2,7 @@ package com.inventoryservice.service;
 
 import com.inventoryservice.dto.inventoryresponse;
 import com.inventoryservice.reopositiry.InventiortRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@Slf4j
 public class InventoryService {
 
     private final InventiortRepo inventiortRepo;
@@ -17,9 +19,12 @@ public class InventoryService {
         this.inventiortRepo = inventiortRepo;
     }
      @Transactional(readOnly = true)
-    public List<inventoryresponse> isInstock(List<String> skucode){
+    public List<inventoryresponse> isInstock(List<String> skucode) throws InterruptedException {
         // extension method for querying from inventory repo
 
+  log.info("wait started");
+  Thread.sleep(10000);
+  log.info("wait ended");
 
          // find all the inventory with the skew code in the list
     // return stock information for each sku code

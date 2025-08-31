@@ -22,7 +22,7 @@ public class OrderService {
     private final OrderRepo orderRepo;
     private final WebClient.Builder webClient;
 
-    public void placeOrder(OrderRequest orderRequest) {
+    public String placeOrder(OrderRequest orderRequest) {
         Order order = new Order();
         // setting order
         order.setOrderNumber(UUID.randomUUID().toString());
@@ -46,6 +46,7 @@ public class OrderService {
         boolean allProductinStock = Arrays.stream(inventoryresponsearray).allMatch(inventoryresponse::isInStock);
         if (allProductinStock) {
             orderRepo.save(order);
+            return "Order Placed Succcesfully";
         } else {
             throw new IllegalArgumentException("Product is not in stock");
         }

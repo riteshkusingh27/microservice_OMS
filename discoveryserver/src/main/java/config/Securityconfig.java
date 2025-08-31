@@ -24,10 +24,6 @@ public class Securityconfig {
     @Value("${eureka.password}")
     private String password;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,15 +35,21 @@ public class Securityconfig {
     }
 
     @Bean
-    public UserDetailsService userdetailservice(PasswordEncoder passwordEncoder) {
-        InMemoryUserDetailsManager userManager = new InMemoryUserDetailsManager();
-        UserDetails user = User.builder()
-                .username(username)
-                .password(passwordEncoder.encode(password))
+    public UserDetailsService userdetailservice (PasswordEncoder passwordEncoder) {
+        InMemoryUserDetailsManager u = new InMemoryUserDetailsManager();
+        UserDetails user = User.withUsername(username
+                )
+                .password(passwordEncoder().encode(password))
                 .authorities("USER")
+
                 .build();
 
-        userManager.createUser(user);
-        return userManager;
+        u.createUser(user);
+        return u;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
