@@ -22,9 +22,9 @@ public class InventoryService {
     public List<inventoryresponse> isInstock(List<String> skucode) throws InterruptedException {
         // extension method for querying from inventory repo
 
-  log.info("wait started");
-  Thread.sleep(10000);
-  log.info("wait ended");
+//  log.info("wait started");
+//  Thread.sleep(10000);
+//  log.info("wait ended");
 
          // find all the inventory with the skew code in the list
     // return stock information for each sku code
