@@ -26,6 +26,8 @@ public class OrderController {
     @Retry(name="product")
     public CompletableFuture<String> placeOrder(@RequestBody OrderRequest order){
   System.out.println(order);
+  // by default it used another thread and free up the main thread for retry (not in the thread that handles http request)
+        // placeorder method is offloaded to a backgound thread
        return   CompletableFuture.supplyAsync(()-> orderService.placeOrder(order));
 
     }
